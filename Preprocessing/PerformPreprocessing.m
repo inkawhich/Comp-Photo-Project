@@ -36,15 +36,23 @@ function f = PerformPreprocessing(inputDirectory,funcName,varargin  )
       % add more image extensions here if necessary
 
       for kk = 1:length(images)
+          if mod(kk,50) == 0
+              k/length(dirContents)
+              kk/length(images)
+          end;
           imagePath = images(kk).name;
           fullImagePath = fullfile(fullClassDir, imagePath);
           fullImagePath_out = fullfile(fullClassDir_out, imagePath);
           
           count=count+1;
           
-          im = imread(fullImagePath);
-          im=evalFunc(funcName,im,varargin); 
-          imwrite(im, fullImagePath_out);
+          try
+            im = imread(fullImagePath);
+            im=evalFunc(funcName,im,varargin); 
+            imwrite(im, fullImagePath_out);
+          catch
+            warning('invalid fxn call, moving on...'); 
+          end
           
       end
 
@@ -80,7 +88,7 @@ function reject = rejectDir(dir)
 
     currDir="/.";
     upDir="/..";
-    DS_Store="/.DS_Store"
+    DS_Store="/.DS_Store";
     
    
     last1=string(dir(end-1:end)); 
