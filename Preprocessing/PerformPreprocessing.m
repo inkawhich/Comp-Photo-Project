@@ -33,21 +33,34 @@ function f = PerformPreprocessing(inputDirectory,funcName,varargin  )
 
       images= dir(fullfile(fullClassDir,'*.jpg'));
       images=[images ; dir(fullfile(fullClassDir,'*.png'))];
+      images=[images ; dir(fullfile(fullClassDir,'*.jpeg'))];
+      images=[images ; dir(fullfile(fullClassDir,'*.JPEG'))];
       % add more image extensions here if necessary
 
       for kk = 1:length(images)
           if mod(kk,50) == 0
               k/length(dirContents)
               kk/length(images)
-          end;
+          end
           imagePath = images(kk).name;
           fullImagePath = fullfile(fullClassDir, imagePath);
           fullImagePath_out = fullfile(fullClassDir_out, imagePath);
           
           count=count+1;
           
+          % If the output file already exists, just continue
+          if exist(fullImagePath_out, 'file')
+              continue;
+          end
+          
+          % Generate and save the transformed image
           try
             im = imread(fullImagePath);
+            % if the image is grayscale make it color
+            if size(im,3) ~= 3
+               colorim = cat(3,im,im,im); 
+               im = colorim;
+            end
             im=evalFunc(funcName,im,varargin); 
             imwrite(im, fullImagePath_out);
           catch
