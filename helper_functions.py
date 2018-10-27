@@ -108,12 +108,13 @@ def train_model(model, device, criterion, optimizer, dataloaders, num_epochs=25,
 ##################################################################################################
 def test_model(model, device, testloader):
     dataset_size = len(testloader.dataset)
+    print("Testing Dataset Size: ",dataset_size)
     running_corrects = 0
     model.eval()
     with torch.no_grad():
         for inputs, labels in testloader:
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+            inputs = inputs.float().to(device)
+            labels = labels.long().to(device)
             outputs = model(inputs)
             _, preds = torch.max(outputs, 1)
             running_corrects += torch.sum(preds == labels.data)
@@ -138,9 +139,9 @@ def initialize_model(model_name, num_classes, feature_extract, pt=True):
     input_size = 0
 
     if model_name == "resnet":
-        """ Resnet18
+        """ Resnet50
         """
-        model_ft = models.resnet18(pretrained=pt)
+        model_ft = models.resnet50(pretrained=pt)
         set_parameter_requires_grad(model_ft, feature_extract)
         num_ftrs = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_ftrs, num_classes)
