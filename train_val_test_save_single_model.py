@@ -32,11 +32,11 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Top level data directory. Here we assume the format of the directory conforms 
 #   to the ImageFolder structure
-#dset = "_Ying_2017_ICCV"
-#dset = "_lime"
-#dset = "_BIMEF"
-dset = "_multiscaleRetinex"
 #dset = ""
+#dset = "_lime"
+#dset = "_multiscaleRetinex"
+#dset = "_BIMEF"
+dset = "_Ying_2017_ICCV"
 data_dir = "/root/hostCurUser/Comp-Photo-Data/Dark-Image-Data{}".format(dset)
 
 # Models to choose from [resnet, alexnet, vgg, squeezenet, densenet, inception]
@@ -52,17 +52,17 @@ num_epochs = 100
 #   when True we only update the reshaped layer params
 feature_extract = False
 
-# Should we save the final model
-save_flag = True
-checkpoint_name = "saved_models/{}_{}_{}epoch_model.pth.tar".format(data_dir.split("/")[-1],model_name,num_epochs)
-
 # Seed for random number generator. This is what defines split 01 and 02
-SEED=12345  # Split-01
+#SEED=12345  # Split-01
 #SEED=56789  # Split-02
+SEED=63751  # Split-03
 
 random.seed(SEED)
 torch.manual_seed(SEED)
 
+# Should we save the final model
+save_flag = True
+checkpoint_name = "saved_models/{}_{}_{}epoch_seed{}_model.pth.tar".format(data_dir.split("/")[-1],model_name,num_epochs,SEED)
 
 
 ######################################################################
@@ -121,7 +121,7 @@ print("total: {}".format(len(train_indexes)+len(val_indexes)+len(test_indexes)))
 
 print("First 10 test indexes:\n",test_indexes[:10])
 print("Last 10 test indexes:\n",test_indexes[-10:])
-#exit()
+verify_indexes_with_seed(SEED,test_indexes[:5],test_indexes[-5:])
 
 # Create dataloaders for training and test data
 trainset = torch.utils.data.Subset(full_dataset, train_indexes)

@@ -19,6 +19,7 @@ import copy
 import random
 from helper_functions import *
 
+
 print("PyTorch Version: ",torch.__version__)
 print("Torchvision Version: ",torchvision.__version__)
 
@@ -30,11 +31,20 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 ######################################################################
 
 # Load trained model
-saved_model_path = "saved_models/Dark-Image-Data_lime_resnet_100epoch_model.pth.tar"
+dset = ""
+#dset = "_lime"
+#dset = "_multiscaleRetinex"
+#dset = "_BIMEF"
+#dset = "_Ying_2017_ICCV"
+
+#saved_model_path = "saved_models/Dark-Image-Data{}_resnet_100epoch_model.pth.tar".format(dset) # Seed = 12345
+#saved_model_path = "saved_models/Dark-Image-Data{}_resnet_100epoch_seed56789_model.pth.tar".format(dset) # Seed = 56789
+saved_model_path = "saved_models/Dark-Image-Data{}_resnet_100epoch_seed63751_model.pth.tar".format(dset) # Seed = 63751
 
 # Seed for random number generator. This is what defines split 01 and 02
-SEED=12345  # Split-01
+#SEED=12345  # Split-01
 #SEED=56789  # Split-02
+SEED=63751  # Split-03
 random.seed(SEED)
 torch.manual_seed(SEED)
 
@@ -109,10 +119,9 @@ print("# val: {}".format(len(val_indexes)))
 print("# test: {}".format(len(test_indexes)))
 print("total: {}".format(len(train_indexes)+len(val_indexes)+len(test_indexes)))
 
-# Seed=12345 ==> [38, 73, 77, 86, 98, 114, 116, 125, 140, 143]
 print("First 10 test indexes:\n",test_indexes[:10])
-# Seed=12345 ==> [4412, 4419, 4420, 4431, 4433, 4441, 4442, 4461, 4462, 4463]
 print("Last 10 test indexes:\n",test_indexes[-10:])
+verify_indexes_with_seed(SEED,test_indexes[:5],test_indexes[-5:])
 
 # Create dataloaders for training and test data
 #valset = torch.utils.data.Subset(full_dataset, val_indexes)
@@ -123,8 +132,9 @@ test_loader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle=False, 
 
 # Run test to make sure model loaded properly
 test_accuracy = test_model(model,device,test_loader)
-print("Test Acc: ",test_accuracy)
-assert(test_accuracy.item() == checkpoint['test_acc'])
+print("Test Acc: ",test_accuracy.item())
+print("Ckpt Acc: ",checkpoint['test_acc'].item())
+assert(abs(test_accuracy.item() - checkpoint['test_acc'].item()) <= 1e-5)
 
 
 ######################################################################
@@ -134,9 +144,7 @@ assert(test_accuracy.item() == checkpoint['test_acc'])
 # Initialize Stat Keepers
 accuracy_cnt = 0.
 total = 0
-confusion_matrix = np.zeros((7,7))
-class_wise_recall_cnt = np.zeros((7))
-class_wise_recall_total = np.zeros((7))
+cmat = np.zeros((7,7))
 
 with torch.no_grad():
  
@@ -150,23 +158,54 @@ with torch.no_grad():
 		gt = labels.item()
 		pred = preds.item()
 		# Update stats
-		confusion_matrix[gt,pred] += 1
-		class_wise_recall_total[gt] += 1.
+		cmat[gt,pred] += 1
 		if gt == pred:
-			class_wise_recall_cnt[gt] += 1.
 			accuracy_cnt += 1.
 		total += 1
 
-tpr_arr = class_wise_recall_cnt/class_wise_recall_total
 acc = accuracy_cnt/total
 
-print("Confusion Matrix\n",confusion_matrix)
-print("TPR Array\n",tpr_arr)
-print("Accuracy: {}".format(acc))
+# Analyze cmat for per class stats
+class_gt_totals = np.sum(cmat,axis=1)
+class_pred_totals = np.sum(cmat,axis=0)
+print(cmat)
+print("Class GT totals: ",class_gt_totals)
+print("Class Pred totals: ",class_pred_totals)
+tpr_arr = np.zeros((len(cmat)))
+precision_arr = np.zeros((len(cmat)))
+for i in range(len(cmat)):
+	tpr_arr[i] = cmat[i,i]/float(class_gt_totals[i])
+	precision_arr[i] = cmat[i,i]/float(class_pred_totals[i])
+tmp = (1./tpr_arr)+(1./precision_arr)
+f1_arr = 2./tmp
+print("TPR Arr: ",tpr_arr)
+#print("Precision Arr: ",precision_arr)
+print("F1 Arr: ",f1_arr)
+print("Accuracy: ",acc)
 
-assert(acc == checkpoint['test_acc'])
+assert(abs(acc - checkpoint['test_acc'].item()) <= 1e-5)
+
+print(saved_model_path)
 
 
-
-
+""" Testing Stat Metrics by hand
+# Test Stat Metrics
+cmat = np.array([[10,1,6,2],[0,12,1,1],[4,3,9,1],[0,0,6,13]])
+class_gt_totals = np.sum(cmat,axis=1)
+class_pred_totals = np.sum(cmat,axis=0)
+print(cmat)
+print("Class GT totals: ",class_gt_totals)
+print("Class Pred totals: ",class_pred_totals)
+tpr_arr = np.zeros((len(cmat)))
+precision_arr = np.zeros((len(cmat)))
+for i in range(len(cmat)):
+	tpr_arr[i] = cmat[i,i]/float(class_gt_totals[i])
+	precision_arr[i] = cmat[i,i]/float(class_pred_totals[i])
+tmp = (1./tpr_arr)+(1./precision_arr)
+f1_arr = 2./tmp
+print("TPR Arr: ",tpr_arr)
+print("Precision Arr: ",precision_arr)
+print("F1 Arr: ",f1_arr)
+exit()
+"""
 
