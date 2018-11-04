@@ -36,8 +36,9 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #dset = "_lime"
 #dset = "_multiscaleRetinex"
 #dset = "_BIMEF"
-dset = "_Ying_2017_ICCV"
-data_dir = "/root/hostCurUser/Comp-Photo-Data/Dark-Image-Data{}".format(dset)
+#dset = "_Ying_2017_ICCV"
+#data_dir = "/root/hostCurUser/Comp-Photo-Data/Dark-Image-Data{}".format(dset)
+data_dir = "/root/hostCurUser/Comp-Photo-Data/Light-Image-Data"; dset="LIGHT"
 
 # Models to choose from [resnet, alexnet, vgg, squeezenet, densenet, inception]
 model_name = "resnet"
@@ -121,7 +122,7 @@ print("total: {}".format(len(train_indexes)+len(val_indexes)+len(test_indexes)))
 
 print("First 10 test indexes:\n",test_indexes[:10])
 print("Last 10 test indexes:\n",test_indexes[-10:])
-verify_indexes_with_seed(SEED,test_indexes[:5],test_indexes[-5:])
+#verify_indexes_with_seed(SEED,test_indexes[:5],test_indexes[-5:])
 
 # Create dataloaders for training and test data
 trainset = torch.utils.data.Subset(full_dataset, train_indexes)

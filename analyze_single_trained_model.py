@@ -30,16 +30,18 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Inputs
 ######################################################################
 
-# Load trained model
-dset = ""
-#dset = "_lime"
+### Dark Data
+#dset = ""
+dset = "_lime"
 #dset = "_multiscaleRetinex"
 #dset = "_BIMEF"
 #dset = "_Ying_2017_ICCV"
-
 #saved_model_path = "saved_models/Dark-Image-Data{}_resnet_100epoch_model.pth.tar".format(dset) # Seed = 12345
 #saved_model_path = "saved_models/Dark-Image-Data{}_resnet_100epoch_seed56789_model.pth.tar".format(dset) # Seed = 56789
 saved_model_path = "saved_models/Dark-Image-Data{}_resnet_100epoch_seed63751_model.pth.tar".format(dset) # Seed = 63751
+
+### Light Data
+#saved_model_path = "saved_models/Light-Image-Data_resnet_100epoch_seed63751_model.pth.tar"
 
 # Seed for random number generator. This is what defines split 01 and 02
 #SEED=12345  # Split-01
@@ -48,6 +50,15 @@ SEED=63751  # Split-03
 random.seed(SEED)
 torch.manual_seed(SEED)
 
+# Save flag for saving output logits to file
+# BE CAREFUL! ERROR PRONE LOG FILE NAME!
+save_flag=False
+if save_flag == True:
+	parts = saved_model_path.split("_")
+	log_file = "model_predictions/seed{}/{}{}_{}_seed{}_testlogits.txt".format(SEED,parts[3],dset,parts[4],SEED)
+	#log_file = "model_predictions/seed{}/resnet_dark_100epoch_seed{}_testlogits.txt".format(SEED,SEED)
+	log = open(log_file,"w")
+	print("Log File: ",log_file)
 
 ######################################################################
 # Load Model
@@ -74,6 +85,10 @@ elif "lime" in saved_model_path:
 	data_dir = data_dir+"_lime" 
 elif "multiscaleRetinex" in saved_model_path:
 	data_dir = data_dir+"_multiscaleRetinex"
+
+# for LIGHT data only
+#data_dir = data_root+"/Light-Image-Data"
+
 print("Model Path: ",saved_model_path) 
 print("Data Dir: ",data_dir) 
 
@@ -162,6 +177,14 @@ with torch.no_grad():
 		if gt == pred:
 			accuracy_cnt += 1.
 		total += 1
+
+		# If save_flag is true, we write the gt label, the first pixel value of data which may
+		#   be used as a sync value, and the list of class logits.
+		if save_flag == True:
+			logits = outputs.cpu().squeeze().numpy()
+			logit_list = ','.join(str(x) for x in logits)
+			line = "{},{},{}\n".format(gt,inputs[0,0,0,0],logit_list)
+			log.write(line)
 
 acc = accuracy_cnt/total
 
