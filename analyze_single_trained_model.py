@@ -32,10 +32,10 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 ### Dark Data
 #dset = ""
-dset = "_lime"
+#dset = "_lime"
 #dset = "_multiscaleRetinex"
 #dset = "_BIMEF"
-#dset = "_Ying_2017_ICCV"
+dset = "_Ying_2017_ICCV"
 #saved_model_path = "saved_models/Dark-Image-Data{}_resnet_100epoch_model.pth.tar".format(dset) # Seed = 12345
 #saved_model_path = "saved_models/Dark-Image-Data{}_resnet_100epoch_seed56789_model.pth.tar".format(dset) # Seed = 56789
 saved_model_path = "saved_models/Dark-Image-Data{}_resnet_100epoch_seed63751_model.pth.tar".format(dset) # Seed = 63751
@@ -55,8 +55,8 @@ torch.manual_seed(SEED)
 save_flag=False
 if save_flag == True:
 	parts = saved_model_path.split("_")
-	log_file = "model_predictions/seed{}/{}{}_{}_seed{}_testlogits.txt".format(SEED,parts[3],dset,parts[4],SEED)
-	#log_file = "model_predictions/seed{}/resnet_dark_100epoch_seed{}_testlogits.txt".format(SEED,SEED)
+	log_file = "model_predictions/val/seed{}/{}{}_{}_seed{}_testlogits.txt".format(SEED,parts[3],dset,parts[4],SEED)
+	#log_file = "model_predictions/val/seed{}/resnet_dark_100epoch_seed{}_testlogits.txt".format(SEED,SEED)
 	log = open(log_file,"w")
 	print("Log File: ",log_file)
 
@@ -139,8 +139,11 @@ print("Last 10 test indexes:\n",test_indexes[-10:])
 verify_indexes_with_seed(SEED,test_indexes[:5],test_indexes[-5:])
 
 # Create dataloaders for training and test data
-#valset = torch.utils.data.Subset(full_dataset, val_indexes)
+############ BE CAREFUL!!
+#testset = torch.utils.data.Subset(full_dataset, val_indexes)
 testset = torch.utils.data.Subset(full_dataset, test_indexes)
+############
+
 #valset.transform = data_transforms['val']
 testset.transform = test_transform
 test_loader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle=False, num_workers=1)

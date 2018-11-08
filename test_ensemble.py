@@ -87,7 +87,7 @@ SEED=12345  # Split-01
 #SEED=63751  # Split-03
 
 # Choose the models that will make up the ensemble
-log_root_dir = "model_predictions/seed{}".format(SEED)
+log_root_dir = "model_predictions/val/seed{}".format(SEED)
 model_files = [ 
 	#log_root_dir+"/resnet_dark_100epoch_seed{}_testlogits.txt".format(SEED),
 	log_root_dir+"/resnet_lime_100epoch_seed{}_testlogits.txt".format(SEED),
