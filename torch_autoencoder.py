@@ -7,13 +7,13 @@ from torch.autograd import Variable
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-BATCH_SIZE = 8
-NUM_EPOCHS = 2
+BATCH_SIZE = 64
+NUM_EPOCHS = 20
 LEARNING_RATE = 0.001
 HEIGHT=WIDTH=224
 
 
-transform = transforms.Compose([transforms.Resize((224,224)), transforms.ToTensor()])
+transform = transforms.Compose([transforms.Resize((224,224)), transforms.RandomResizedCrop(112), transforms.RandomHorizontalFlip(),transforms.ToTensor()])
 dark_dataset = ImageFolder('./Dark-Image-Data/',transform=transform)
 light_dataset = ImageFolder('./Dark-Image-Data_lime/',transform=transform)
 
@@ -73,4 +73,4 @@ for epoch in range(NUM_EPOCHS):
         print("Loss = %.3f" % loss.data[0])
 
 
-torch.save(model.state_dict(),'./torch_model/')
+torch.save(model.state_dict(),'./torch_model/autoencoder_lime_112.pth')
